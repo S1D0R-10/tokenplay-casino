@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Warstwa_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 58.61 49.28">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #00a99d;
+        stroke: #006837;
+        stroke-miterlimit: 10;
+        stroke-width: 2px;
+      }
+    </style>
+  </defs>
+  <rect class="cls-1" x="5.78" y="7.05" width="42.18" height="28.12" rx="7.12" ry="7.12" transform="translate(-6.96 16.26) rotate(-30)"/>
+  <rect class="cls-1" x="1" y="14.02" width="51.39" height="34.26" rx="6.43" ry="6.43"/>
+  <rect class="cls-1" x="36.58" y="24.18" width="21.03" height="12.93" rx="4.68" ry="4.68"/>
+</svg>
