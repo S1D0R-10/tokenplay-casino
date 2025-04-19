@@ -1,0 +1,8 @@
+Siema pozdrowienia od marcela,
+poproszę o nastepujace postepowania:
+- robcie widok najpierw (ma być spojny)
+- dodajecie assety do pliczku ai
+- potem go chacikiem do reacta dodajecie
+- commit i push ale proszę nie rozjebujcie innych zmian
+
+ponowne pozdrowienia
