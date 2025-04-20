@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router";
+
 export const Homepage = () => {
+    const navigate = useNavigate();
     return (
         <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 bg-[#43474B]">
             {[
@@ -21,6 +24,9 @@ export const Homepage = () => {
                         src={game.src}
                         alt={game.alt}
                         className="w-3/5 h-3/5 sm:w-4/5 sm:h-4/5 object-contain cursor-pointer transition-transform hover:scale-105 rounded-[9.74%] shadow-[6px_4px_15px_3px_rgba(0,_0,_0,_0.1)]"
+                        onClick={() =>
+                            game.link ? navigate(game.link) : () => {}
+                        }
                     />
                 </div>
             ))}

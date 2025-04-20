@@ -46,7 +46,7 @@ export const Header = () => {
             </header>
             {/* Dropdown Menu */}
             {isMenuOpen && (
-                <div className="absolute right-0 top-14 bg-gray-800 w-48 z-10 shadow-lg rounded-l-sm">
+                <div className="absolute right-0 top-14 bg-gray-800 w-48 shadow-lg rounded-l-sm z-100">
                     <div className="p-3 text-sm">
                         <div className="mb-2 pb-2 border-b border-gray-700 hover:text-teal-400 cursor-pointer">
                             ABOUT US

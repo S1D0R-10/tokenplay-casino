@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom"; // Ensur
 import { Homepage } from "./Homepage.jsx";
 import "./index.css";
 import App from "./App.jsx";
+import { Blackjack } from "./BJ.jsx";
 
 // Create the context
 export const MockUserCtx = createContext();
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
                 path: "/",
                 element: <Homepage />, // Use 'element' here as well
             },
+            {
+                path: "/bj",
+                element: <Blackjack />
+            }
         ],
     },
 ]);
