@@ -5,6 +5,8 @@ import { Homepage } from "./Homepage.jsx";
 import "./index.css";
 import App from "./App.jsx";
 import { Blackjack } from "./BJ.jsx";
+import { Mines } from "./Mines.jsx";
+
 
 // Create the context
 export const MockUserCtx = createContext();
@@ -33,6 +35,10 @@ const router = createBrowserRouter([
             {
                 path: "/bj",
                 element: <Blackjack />
+            },
+            {
+                path: "/mines",
+                element: <Mines />
             }
         ],
     },
