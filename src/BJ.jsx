@@ -10,7 +10,8 @@ export const Blackjack = () => {
     const [currentDeck, setCurrentDeck] = useState([]);
 
     const [gameState, setGameState] = useState("betting"); // betting, playing, dealer, result
-    const [betAmount, setBetAmount_] = useState("10.00");
+    const [betAmount, setBetAmount] = useState("10.00");
+    const [rawBetInput, setRawBetInput] = useState("10.00");
     const [canDouble, setCanDouble] = useState(false);
     const [canHit, setCanHit] = useState(false);
     const [canStand, setCanStand] = useState(false);
@@ -97,52 +98,52 @@ export const Blackjack = () => {
     };
 
     // Set bet amount with validation
-    const setBetAmount = (amt) => {
-        setBetAmount_(formatToTwoDecimalPlaces(Math.min(amt, user.balance)));
+    const validateAndSetBetAmount = (amt) => {
+        const validAmount = Math.min(Math.max(parseFloat(amt) || 0, 0.01), user.balance);
+        const formatted = formatToTwoDecimalPlaces(validAmount);
+        setBetAmount(formatted);
+        setRawBetInput(formatted);
     };
 
-    // Handle bet input change
+    // Handle bet input change - just update the raw input without formatting
     const handleBetChange = (e) => {
-        const value = e.target.value.replace(/[^0-9.]/g, "");
-        setBetAmount(value);
+        const value = e.target.value.replace(/^\$/, ''); // Remove $ if present
+        setRawBetInput(value);
     };
 
-    // Handle input blur
+    // Handle input blur - format the value
     const handleBlur = () => {
-        setBetAmount(betAmount);
+        validateAndSetBetAmount(rawBetInput);
     };
 
-    // Handle input focus
-    const handleFocus = (e) => {
-        const input = e.target;
-        setTimeout(() => {
-            input.selectionStart = 1;
-            input.selectionEnd = input.value.length;
-        }, 0);
-    };
-
-    // Handle key down
+    // Handle key down - format on Enter
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {
+            validateAndSetBetAmount(rawBetInput);
             e.target.blur();
         }
+    };
+
+    // Handle input focus - select all text for easy editing
+    const handleFocus = (e) => {
+        e.target.select();
     };
 
     // Half bet
     const handleHalfBet = () => {
         const currentValue = parseFloat(betAmount) || 0;
         const halvedValue = Math.max(currentValue * 0.5, 0.01);
-        setBetAmount(halvedValue);
+        validateAndSetBetAmount(halvedValue);
     };
 
     // Double bet
     const handleDoubleBet = () => {
         const currentValue = parseFloat(betAmount) || 0;
         const doubledValue = Math.min(currentValue * 2, user.balance);
-        setBetAmount(doubledValue);
+        validateAndSetBetAmount(doubledValue);
     };
 
-    // Draw a card from the deck
+    // Draw a card from the deck 
     const drawCard = () => {
         // Make sure we have cards left
         if (currentDeck.length === 0) {
@@ -158,9 +159,13 @@ export const Blackjack = () => {
 
     // Start a new game
     const startGame = () => {
-        const newDeck = createDeck();
+        const betValue = parseFloat(betAmount);
+        if (betValue <= 0 || betValue > user.balance) {
+            return;
+        }
 
-        const newBal = user.balance - parseFloat(betAmount);
+        const newDeck = createDeck();
+        const newBal = user.balance - betValue;
 
         setUser((user) => ({
             ...user,
@@ -183,7 +188,7 @@ export const Blackjack = () => {
         setCanStand(true);
         setResult(""); // Clear any previous result
 
-        const cd = newBal >= parseFloat(betAmount);
+        const cd = newBal >= betValue;
         setCanDouble(cd);
 
         // Calculate scores
@@ -207,14 +212,14 @@ export const Blackjack = () => {
                 setResult("Push - both have Blackjack");
                 setUser((u) => ({
                     ...u,
-                    balance: u.balance + parseFloat(betAmount),
+                    balance: u.balance + betValue,
                 }));
             } else {
                 // Player wins with blackjack
                 setResult("Blackjack! Player wins");
                 setUser((u) => ({
                     ...u,
-                    balance: u.balance + 2.5 * parseFloat(betAmount),
+                    balance: u.balance + 2.5 * betValue,
                 }));
             }
 
@@ -257,14 +262,18 @@ export const Blackjack = () => {
         const card = drawCard();
         const newHand = [...playerHand, card];
 
-        const newBal = user.balance - parseFloat(betAmount);
+        const betValue = parseFloat(betAmount);
+        const newBal = user.balance - betValue;
 
         setUser((user) => ({
             ...user,
             balance: newBal,
         }));
 
-        setBetAmount((ba) => 2 * ba);
+        // Double the bet amount
+        const doubledBet = formatToTwoDecimalPlaces(betValue * 2);
+        setBetAmount(doubledBet);
+        setRawBetInput(doubledBet);
 
         setPlayerHand(newHand);
 
@@ -307,11 +316,13 @@ export const Blackjack = () => {
 
         // Determine winner
         let resultMsg = "";
+        const betValue = parseFloat(betAmount);
+        
         if (dScore > 21 || pScore > dScore) {
             resultMsg = "Player wins";
             setUser((u) => ({
                 ...u,
-                balance: u.balance + 2 * parseFloat(betAmount),
+                balance: u.balance + 2 * betValue,
             }));
         } else if (dScore > pScore) {
             resultMsg = "Dealer wins";
@@ -319,7 +330,7 @@ export const Blackjack = () => {
             resultMsg = "Push";
             setUser((u) => ({
                 ...u,
-                balance: u.balance + parseFloat(betAmount),
+                balance: u.balance + betValue,
             }));
         }
 
@@ -328,13 +339,7 @@ export const Blackjack = () => {
         setDealerHand(fullDealerHand);
         setDealerScore(dScore);
         setResult(resultMsg);
-        setGameState("betting");
-        setCanHit(false);
-        setCanStand(false);
-        setCanDouble(false);
-        setPlayerScore(0);
-        setDealerScore(0);
-        setBetAmount(0);
+        finishGame();
     };
 
     // Finish the game and return to betting state
@@ -343,10 +348,8 @@ export const Blackjack = () => {
         setCanHit(false);
         setCanStand(false);
         setCanDouble(false);
-        setPlayerScore(0);
-        setDealerScore(0);
-        setBetAmount(0);
-        // Note: keep the result visible for the player to see
+        // Reset bet amount to a small default value for next round
+        validateAndSetBetAmount("10.00");
     };
 
     // Card component
@@ -389,17 +392,20 @@ export const Blackjack = () => {
                     <div className="bg-[#596063] p-4 shadow-lg rounded-b-lg md:rounded-t-lg">
                         <div className="mb-4">
                             <div className="bg-[#A2A2A2] p-3 rounded-md text-center shadow-md">
-                                <input
-                                    type="text"
-                                    value={`$${betAmount}`}
-                                    onChange={handleBetChange}
-                                    onBlur={handleBlur}
-                                    onFocus={handleFocus}
-                                    onKeyDown={handleKeyDown}
-                                    disabled={gameState !== "betting"}
-                                    className="bg-transparent text-[#5A4F4F] text-xl font-bold text-center w-32 outline-none overflow-x-visible"
-                                    aria-label="Bet amount"
-                                />
+                                <div className="flex items-center justify-center">
+                                    <span className="text-[#5A4F4F] text-xl font-bold">$</span>
+                                    <input
+                                        type="text"
+                                        value={rawBetInput}
+                                        onChange={handleBetChange}
+                                        onBlur={handleBlur}
+                                        onFocus={handleFocus}
+                                        onKeyDown={handleKeyDown}
+                                        disabled={gameState !== "betting"}
+                                        className="bg-transparent text-[#5A4F4F] text-xl font-bold text-center w-28 outline-none"
+                                        aria-label="Bet amount"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -431,12 +437,12 @@ export const Blackjack = () => {
                         <div className="mb-4">
                             <button
                                 className={`bg-[#409253] text-[#23522E] w-full py-3 rounded-md font-bold text-xl shadow-md ${
-                                    gameState === "betting"
+                                    gameState === "betting" && parseFloat(betAmount) > 0 && parseFloat(betAmount) <= user.balance
                                         ? "hover:bg-green-600"
                                         : "opacity-50 cursor-not-allowed"
                                 }`}
                                 onClick={startGame}
-                                disabled={gameState !== "betting"}
+                                disabled={gameState !== "betting" || parseFloat(betAmount) <= 0 || parseFloat(betAmount) > user.balance}
                             >
                                 BET
                             </button>

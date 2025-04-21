@@ -1,19 +1,22 @@
 import { useContext, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { MockUserCtx } from "./main";
+import { useNavigate } from "react-router";
 
 export const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isWalletOpen, setIsWalletOpen] = useState(false);
     const { user } = useContext(MockUserCtx);
+    const nav = useNavigate();
     return (
         <>
             <header className="bg-[#596063] p-3 flex justify-between items-center px-2 sm:px-[15%] shadow-[0px_9px_19px_10px_rgba(0,_0,_0,_0.1)] z-100">
                 <div className="h-9 w-[40%] sm:w-full flex justify-start sm:justify-end">
                     <img
                         src="../assets/tokenplay-2.svg"
+                        onClick={() => nav("/")}
                         alt="TokenPlay Logo"
-                        className="h-full"
+                        className="h-full hover:cursor-pointer"
                     />
                 </div>
 
@@ -29,7 +32,7 @@ export const Header = () => {
                         <img
                             src="../assets/wallet-2.svg"
                             alt="Wallet"
-                            className="w-4 h-4 md:w-7 md:h-7 lg:w-9 lg:h-9"
+                            className="w-4 h-4 md:w-7 md:h-7 lg:w-9 lg:h-9 hover:cursor-pointer"
                         />
                     </button>
                 </div>
@@ -37,7 +40,7 @@ export const Header = () => {
                 {/* Hamburger Menu */}
                 <div className="w-[23%] sm:w-full flex justify-end">
                     <button
-                        className="text-white ml-2"
+                        className="text-white ml-2 hover:cursor-pointer"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                         <Menu size={32} />
