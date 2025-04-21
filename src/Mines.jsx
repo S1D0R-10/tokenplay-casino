@@ -295,7 +295,7 @@ export const Mines = () => {
                     <button
                         key={i}
                         onClick={() => reveal(i)}
-                        className={`w-9 h-9 sm:w-12 sm:h-12 md:w-20 md:h-20 flex items-center justify-center text-lg rounded shadow hover:scale-105 ${
+                        className={`w-9 h-9 sm:w-12 sm:h-12 md:w-20 md:h-20 flex items-center justify-center text-lg rounded shadow hover:bg-gray-400 hover:scale-105 ${
                             revealed.includes(i)
                                 ? mines.includes(i)
                                     ? "bg-[#C04747]"
