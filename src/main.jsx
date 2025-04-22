@@ -35,19 +35,19 @@ const router = createBrowserRouter([
                 element: <Homepage />, // Use 'element' here as well
             },
             {
-                path: "/bj",
+                path: "/Blackjack",
                 element: <Blackjack />
             },
             {
-                path: "/mines",
+                path: "/Mines",
                 element: <Mines />
             },
             {
-                path: "/wheel",
+                path: "/Wheel",
                 element: <Wheel />
             },
             {
-                path: "/coin",
+                path: "/Coinflip",
                 element: <Coinflip />
             }
         ],
