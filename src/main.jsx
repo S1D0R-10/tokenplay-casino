@@ -8,6 +8,7 @@ import { Blackjack } from "./BJ.jsx";
 import { Mines } from "./Mines.jsx";
 import { Wheel } from "./Wheel.jsx";
 import { Coinflip } from "./Coinflip.jsx";
+import { Tower } from "./Tower.jsx";
 
 
 // Create the context
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
             {
                 path: "/Coinflip",
                 element: <Coinflip />
+            },
+            {
+                path: "/Tower",
+                element: <Tower />
             }
         ],
     },
