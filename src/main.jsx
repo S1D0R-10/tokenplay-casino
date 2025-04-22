@@ -6,6 +6,8 @@ import "./index.css";
 import App from "./App.jsx";
 import { Blackjack } from "./BJ.jsx";
 import { Mines } from "./Mines.jsx";
+import { Wheel } from "./Wheel.jsx";
+import { Coinflip } from "./Coinflip.jsx";
 
 
 // Create the context
@@ -39,6 +41,14 @@ const router = createBrowserRouter([
             {
                 path: "/mines",
                 element: <Mines />
+            },
+            {
+                path: "/wheel",
+                element: <Wheel />
+            },
+            {
+                path: "/coin",
+                element: <Coinflip />
             }
         ],
     },
