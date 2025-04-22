@@ -14,7 +14,7 @@ const TokenPlayHomepage = () => {
                     <div className=" bg-[#43474B]">
                         <h1 className="text-center text-5xl text-white py-6">
                             {location.pathname === "/"
-                                ? "Homepage"
+                                ? ""
                                 : location.pathname.substring(1)}
                         </h1>
                         <Outlet />
