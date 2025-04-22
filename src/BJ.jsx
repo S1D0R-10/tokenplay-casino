@@ -9,7 +9,7 @@ export const Blackjack = () => {
     const { user, setUser } = useContext(MockUserCtx);
     const [currentDeck, setCurrentDeck] = useState([]);
 
-    const [gameState, setGameState] = useState("betting"); // betting, playing, dealer, result
+    const [gameState, setGameState] = useState("betting"); // betting, playing, dealer-drawing, result
     const [betAmount, setBetAmount] = useState("10.00");
     const [rawBetInput, setRawBetInput] = useState("10.00");
     const [canDouble, setCanDouble] = useState(false);
@@ -18,6 +18,7 @@ export const Blackjack = () => {
     const [result, setResult] = useState("");
     const [playerScore, setPlayerScore] = useState(0);
     const [dealerScore, setDealerScore] = useState(0);
+    const [dealerDrawing, setDealerDrawing] = useState(false);
 
     // Create a deck of cards
     const createDeck = () => {
@@ -200,31 +201,35 @@ export const Blackjack = () => {
 
         if (playerVal === 21) {
             // Player has blackjack
-            const dealerHoleCard = newDeck.pop();
-            const fullDealerHand = [dHand[0], dealerHoleCard];
-            const dealerVal = calculateHandValue(fullDealerHand);
+            setDealerDrawing(true);
+            setTimeout(() => {
+                const dealerHoleCard = newDeck.pop();
+                const fullDealerHand = [dHand[0], dealerHoleCard];
+                const dealerVal = calculateHandValue(fullDealerHand);
 
-            setDealerHand(fullDealerHand);
-            setDealerScore(dealerVal);
+                setDealerHand(fullDealerHand);
+                setDealerScore(dealerVal);
 
-            if (dealerVal === 21) {
-                // Push: Both player and dealer have blackjack
-                setResult("Push - both have Blackjack");
-                setUser((u) => ({
-                    ...u,
-                    balance: u.balance + betValue,
-                }));
-            } else {
-                // Player wins with blackjack
-                setResult("Blackjack! Player wins");
-                setUser((u) => ({
-                    ...u,
-                    balance: u.balance + 2.5 * betValue,
-                }));
-            }
-
-            finishGame();
-            return;
+                setTimeout(() => {
+                    if (dealerVal === 21) {
+                        // Push: Both player and dealer have blackjack
+                        setResult("Push - both have Blackjack");
+                        setUser((u) => ({
+                            ...u,
+                            balance: u.balance + betValue,
+                        }));
+                    } else {
+                        // Player wins with blackjack
+                        setResult("Blackjack! Player wins");
+                        setUser((u) => ({
+                            ...u,
+                            balance: u.balance + 2.5 * betValue,
+                        }));
+                    }
+                    setDealerDrawing(false);
+                    finishGame();
+                }, 800);
+            }, 800);
         }
     };
 
@@ -287,59 +292,80 @@ export const Blackjack = () => {
         dealerPlay(newHand);
     };
 
-    // Dealer plays
+    // Dealer plays with delay
     const dealerPlay = (playerFinalHand) => {
+        setDealerDrawing(true);
+        setGameState("dealer-drawing");
         let deckCopy = [...currentDeck];
-
-        // Reveal dealer's hole card
-        const holeCard = deckCopy.pop();
-        let fullDealerHand = [dealerHand[0], holeCard];
-
-        let dScore = calculateHandValue(fullDealerHand);
-        const pScore = calculateHandValue(playerFinalHand);
-
-        // Player busted
-        if (pScore > 21) {
-            setDealerHand(fullDealerHand);
-            setDealerScore(dScore);
-            setResult("Dealer wins");
-            finishGame();
-            return;
-        }
-
-        // Dealer draws until 17 or higher
-        while (dScore < 17) {
-            const newCard = deckCopy.pop();
-            fullDealerHand.push(newCard);
-            dScore = calculateHandValue(fullDealerHand);
-        }
-
-        // Determine winner
-        let resultMsg = "";
-        const betValue = parseFloat(betAmount);
         
-        if (dScore > 21 || pScore > dScore) {
-            resultMsg = "Player wins";
-            setUser((u) => ({
-                ...u,
-                balance: u.balance + 2 * betValue,
-            }));
-        } else if (dScore > pScore) {
-            resultMsg = "Dealer wins";
-        } else {
-            resultMsg = "Push";
-            setUser((u) => ({
-                ...u,
-                balance: u.balance + betValue,
-            }));
-        }
+        // First, reveal dealer's hole card with delay
+        setTimeout(() => {
+            const holeCard = deckCopy.pop();
+            let fullDealerHand = [dealerHand[0], holeCard];
+            setCurrentDeck(deckCopy);
+            setDealerHand(fullDealerHand);
+            
+            let dScore = calculateHandValue(fullDealerHand);
+            setDealerScore(dScore);
+            const pScore = calculateHandValue(playerFinalHand);
 
-        // Update all final states at once
-        setCurrentDeck(deckCopy);
-        setDealerHand(fullDealerHand);
-        setDealerScore(dScore);
-        setResult(resultMsg);
-        finishGame();
+            // Player busted
+            if (pScore > 21) {
+                setTimeout(() => {
+                    setResult("Dealer wins");
+                    setDealerDrawing(false);
+                    finishGame();
+                }, 800);
+                return;
+            }
+
+            // Use recursive setTimeout for dealer draw cards
+            const dealerDrawLoop = (hand, score) => {
+                if (score < 17) {
+                    setTimeout(() => {
+                        const newCard = deckCopy.pop();
+                        const newHand = [...hand, newCard];
+                        const newScore = calculateHandValue(newHand);
+                        
+                        setCurrentDeck(deckCopy);
+                        setDealerHand(newHand);
+                        setDealerScore(newScore);
+                        
+                        dealerDrawLoop(newHand, newScore);
+                    }, 800); // 800ms delay between each card
+                } else {
+                    // Dealer is done drawing, determine winner
+                    setTimeout(() => {
+                        let resultMsg = "";
+                        const betValue = parseFloat(betAmount);
+                        const finalDealerScore = score;
+                        
+                        if (finalDealerScore > 21 || pScore > finalDealerScore) {
+                            resultMsg = "Player wins";
+                            setUser((u) => ({
+                                ...u,
+                                balance: u.balance + 2 * betValue,
+                            }));
+                        } else if (finalDealerScore > pScore) {
+                            resultMsg = "Dealer wins";
+                        } else {
+                            resultMsg = "Push";
+                            setUser((u) => ({
+                                ...u,
+                                balance: u.balance + betValue,
+                            }));
+                        }
+                        
+                        setResult(resultMsg);
+                        setDealerDrawing(false);
+                        finishGame();
+                    }, 800);
+                }
+            };
+            
+            // Start the dealer draw loop
+            dealerDrawLoop(fullDealerHand, dScore);
+        }, 800); // Initial delay for revealing hole card
     };
 
     // Finish the game and return to betting state
@@ -503,15 +529,20 @@ export const Blackjack = () => {
                 </div>
 
                 {/* Central message area */}
-                {result ? (
+                {dealerDrawing && (
+                    <p className="text-center p-3 text-[#9aa2a9] font-[800] text-xl animate-pulse">
+                        Dealer is drawing...
+                    </p>
+                )}
+                {result && !dealerDrawing ? (
                     <p className="text-center p-3 text-[#9aa2a9] font-[800] text-xl">
                         {result}
                     </p>
-                ) : (
+                ) : !dealerDrawing ? (
                     <p className="text-center p-3 text-[#9aa2a9] font-[800]">
                         Dealer hits to all 16 and stays to all 17
                     </p>
-                )}
+                ) : null}
 
                 <div className="flex flex-row flex-wrap px-4 pl-8 py-2 max-w-full justify-center">
                     {playerHand.map((c, index) => (
