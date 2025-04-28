@@ -6,7 +6,7 @@ export const Tower = () => {
     const [rawBetInput, setRawBetInput] = useState("1.00");
     const [betAmount, setBetAmount] = useState("1.00");
     const [gameState, setGameState] = useState("betting");
-    const [towerHeight, setTowerHeight] = useState(5);
+    const [difficulty, setDifficulty] = useState("easy");
     const [currentLevel, setCurrentLevel] = useState(0);
     const [multiplier, setMultiplier] = useState(1);
     const [gameOver, setGameOver] = useState(false);
@@ -14,30 +14,33 @@ export const Tower = () => {
     const [selectedTiles, setSelectedTiles] = useState([]);
     const [safeTiles, setSafeTiles] = useState([]);
     
+    const towerHeight = 5;
     
-    const maxHeight = 10;
-    const tilesPerRow = 3;
-    
+    const difficultyConfig = {
+        easy: { tilesPerRow: 3, safeTilesPerRow: 2 },
+        medium: { tilesPerRow: 2, safeTilesPerRow: 1 },
+        hard: { tilesPerRow: 3, safeTilesPerRow: 1 }
+    };
     
     const payoutTable = useMemo(() => {
         const HOUSE_EDGE = 0.97;
         const payoutObject = {};
         
-        for (let height = 1; height <= maxHeight; height++) {
-            payoutObject[height] = {};
-            for (let level = 1; level <= height; level++) {
-                
-                
-                
-                
-                
+        for (const diff in difficultyConfig) {
+            const config = difficultyConfig[diff];
+            const safeRatio = config.safeTilesPerRow / config.tilesPerRow;
+            
+            payoutObject[diff] = {};
+            
+            for (let level = 1; level <= towerHeight; level++) {
                 let probability = 1;
+                
                 for (let l = 1; l <= level; l++) {
-                    probability *= 2/3; 
+                    probability *= safeRatio; 
                 }
                 
                 const payout = Math.round(HOUSE_EDGE / probability * 100) / 100;
-                payoutObject[height][level] = payout;
+                payoutObject[diff][level] = payout;
             }
         }
         
@@ -54,18 +57,17 @@ export const Tower = () => {
         } else if (gameState !== "playing") {
             setMultiplier(1);
         }
-    }, [gameState, currentLevel]);
+    }, [gameState, currentLevel, difficulty]);
     
     const updateMultiplier = () => {
         const level = currentLevel;
-        const height = towerHeight;
         
         if (level === 0) {
             setMultiplier(1);
             return;
         }
         
-        const payout = payoutTable[height]?.[level];
+        const payout = payoutTable[difficulty]?.[level];
         if (payout) {
             setMultiplier(payout.toFixed(2));
         } else {
@@ -93,9 +95,10 @@ export const Tower = () => {
         setRawBetInput(value);
     };
     
-    const handleHeightChange = (e) => {
-        const value = parseInt(e.target.value, 10);
-        setTowerHeight(value);
+    const handleDifficultyChange = (newDifficulty) => {
+        if (gameState === "betting") {
+            setDifficulty(newDifficulty);
+        }
     };
     
     const handleBlur = () => {
@@ -137,19 +140,19 @@ export const Tower = () => {
     
     const initGame = () => {
         const newSafeTiles = [];
-        
+        const config = difficultyConfig[difficulty];
+        const tilesPerRow = config.tilesPerRow;
+        const safeTilesPerRow = config.safeTilesPerRow;
         
         for (let level = 0; level < towerHeight; level++) {
             const levelSafeTiles = [];
             
-            
-            while (levelSafeTiles.length < 2) {
+            while (levelSafeTiles.length < safeTilesPerRow) {
                 const tileIndex = Math.floor(Math.random() * tilesPerRow);
                 if (!levelSafeTiles.includes(tileIndex)) {
                     levelSafeTiles.push(tileIndex);
                 }
             }
-            
             
             newSafeTiles.push(levelSafeTiles);
         }
@@ -221,23 +224,16 @@ export const Tower = () => {
         setGameState("betting");
     };
     
-    const heightOptions = [];
-    for (let i = 1; i <= maxHeight; i++) {
-        heightOptions.push(
-            <option key={i} value={i}>
-                {i} {i === 1 ? "Level" : "Levels"}
-            </option>
-        );
-    }
-    
+
     
     const renderTower = () => {
         const rows = [];
+        const config = difficultyConfig[difficulty];
+        const tilesPerRow = config.tilesPerRow;
         
         for (let level = towerHeight - 1; level >= 0; level--) {
             const isCurrentLevel = level === currentLevel;
             const isPastLevel = level < currentLevel;
-            
             
             const selectedTile = selectedTiles.find(t => t.level === level);
             
@@ -318,16 +314,42 @@ export const Tower = () => {
                     </div>
 
                     <div className="mb-4">
-                        <div className="bg-[#A2A2A2] p-3 rounded-md shadow-md">
-                            <select
-                                value={towerHeight}
-                                onChange={handleHeightChange}
-                                disabled={gameState !== "betting"}
-                                className="w-full bg-transparent text-[#5A4F4F] text-lg font-bold text-center appearance-none outline-none cursor-pointer"
-                                aria-label="Tower height"
-                            >
-                                {heightOptions}
-                            </select>
+                        <div className="py-3 rounded-md">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <button
+                                    className={`px-3 py-2 rounded-md font-bold transition-colors duration-200 ${
+                                        difficulty === "easy"
+                                            ? "bg-[#409253] text-[#23522E]"
+                                            : "bg-[#737981] text-[#5A4F4F] hover:bg-gray-500"
+                                    } ${gameState !== "betting" ? "opacity-75 cursor-not-allowed" : ""}`}
+                                    onClick={() => handleDifficultyChange("easy")}
+                                    disabled={gameState !== "betting"}
+                                >
+                                    Easy
+                                </button>
+                                <button
+                                    className={`px-3 py-2 rounded-md font-bold transition-colors duration-200 ${
+                                        difficulty === "medium"
+                                            ? "bg-[#C89B3C] text-[#735A28]"
+                                            : "bg-[#737981] text-[#5A4F4F] hover:bg-gray-500"
+                                    } ${gameState !== "betting" ? "opacity-75 cursor-not-allowed" : ""}`}
+                                    onClick={() => handleDifficultyChange("medium")}
+                                    disabled={gameState !== "betting"}
+                                >
+                                    Medium
+                                </button>
+                                <button
+                                    className={`px-3 py-2 rounded-md font-bold transition-colors duration-200 ${
+                                        difficulty === "hard"
+                                            ? "bg-[#C04747] text-[#5A2828]"
+                                            : "bg-[#737981] text-[#5A4F4F] hover:bg-gray-500"
+                                    } ${gameState !== "betting" ? "opacity-75 cursor-not-allowed" : ""}`}
+                                    onClick={() => handleDifficultyChange("hard")}
+                                    disabled={gameState !== "betting"}
+                                >
+                                    Hard
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -393,7 +415,7 @@ export const Tower = () => {
                 )}
                 {!gameOver && gameState === "playing" && (
                     <div className="text-lg text-yellow-300 mb-4 text-center">
-                        Level {currentLevel + 1} of {towerHeight} - Current Multiplier: {multiplier}x
+                        Level {currentLevel + 1} of {towerHeight} - Current Multiplier: {multiplier}x - Difficulty: {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
                     </div>
                 )}
             </div>
@@ -403,7 +425,12 @@ export const Tower = () => {
             </div>
 
             <div className="mt-4 max-w-md text-center text-sm text-gray-300">
-                <p>Choose a safe path up the tower to increase your multiplier. Each level has 2 safe tiles and 1 trap. Cash out anytime to secure your winnings!</p>
+                <p>Choose a safe path up the tower to increase your multiplier. Cash out anytime to secure your winnings!</p>
+                <p className="mt-2">
+                    <strong>Easy:</strong> 3 tiles with 1 fire | 
+                    <strong>Medium:</strong> 2 tiles with 1 fire | 
+                    <strong>Hard:</strong> 3 tiles with 2 fires
+                </p>
             </div>
         </div>
     );
